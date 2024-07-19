@@ -1,11 +1,38 @@
 {% extends "base_generic.html" %}
 
+{% block sidebar %}
+  {{ block.super }}
+
+  {% if perms.catalog.change_author or perms.catalog.delete_author %}
+  <hr>
+  <ul class="sidebar-nav">
+    {% if perms.catalog.change_author %}
+      <li><a href="{% url 'author-update' author.id %}">Update author</a></li>
+    {% endif %}
+    {% if not author.book_set.all and perms.catalog.delete_author %}
+      <li><a href="{% url 'author-delete' author.id %}">Delete author</a></li>
+    {% endif %}
+    </ul>
+  {% endif %}
+
+{% endblock %}
+
 {% block content %}
     {% if author %}
         <h1>Name: {{ author.last_name }}, {{author.first_name }}</h1>
-        <p><strong>Birth:</strong> {{ author.date_of_birth }} </p>
-        <p><strong>Death:</strong> {{ author.date_of_death }} </p>
-        <p>Books: {{author.book}}</p>
+        <p>{{ author.date_of_birth }} - {% if author.date_of_death %} {{author.date_of_death}} {% else %} Present {% endif %} </p>
+        <h3>Books:</h3> 
+        <p>
+            <ul>
+            {% for book in author.book_set.all %} 
+                <li><a href="{{ book.get_absolute_url }}" >{{book}}</a> ({{book.bookinstance_set.all.count}})
+                    <br> {{ book.summary }}
+                </li>
+            {% empty %}
+              This author has no books.
+            {% endfor %}
+            </ul>
+        </p>
     {% endif %}
 
 {% endblock %}
